@@ -28,8 +28,11 @@ RUN find . -name '*.sh' -exec sed -i 's/\r$//' {} + && \
 
 # Build with system libraries (unix-generic avoids bundled native binaries).
 # GH200 uses linux_arm64, where Grpc.Tools' bundled protoc currently crashes.
-# Use the checked-in generated RL bridge stubs from the upstream OpenRA repo.
-ENV SKIP_PROTOC=true
+# Native AMD64 builds regenerate the bridge stubs to keep them in sync with
+# rl_bridge.proto. ARM builders can opt into the checked-in generated files
+# with --build-arg SKIP_PROTOC=true.
+ARG SKIP_PROTOC=
+ENV SKIP_PROTOC=${SKIP_PROTOC}
 RUN make TARGETPLATFORM=unix-generic CONFIGURATION=Release
 
 # Verify critical output (includes Null platform for headless RL operation)
