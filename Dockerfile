@@ -1,7 +1,7 @@
 # ==============================================================================
-# Stage 1: Build OpenRA from source (C#/.NET 8.0)
+# Stage 1: Build OpenRA from source (C#/.NET 10.0)
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS openra-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS openra-build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Clone OpenRA source from GitHub. The generated RL bridge stubs now live
 # upstream, so GH200 can stay on the remote bleed branch and use SKIP_PROTOC.
-ARG OPENRA_REPO=https://github.com/yxc20089/OpenRA.git
-ARG OPENRA_BRANCH=bleed
+ARG OPENRA_REPO=https://github.com/alibad/OpenRA.git
+ARG OPENRA_BRANCH=main
 ARG OPENRA_CACHE_BUST=0
 RUN echo "OpenRA cache bust: $OPENRA_CACHE_BUST" && \
     git clone --depth=1 --branch "$OPENRA_BRANCH" "$OPENRA_REPO" /src/openra
@@ -44,7 +44,7 @@ RUN test -f bin/OpenRA.dll && \
 # ==============================================================================
 # Stage 2: Install Python dependencies
 # ==============================================================================
-FROM python:3.11-slim-bookworm AS python-build
+FROM python:3.11-slim-trixie AS python-build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -62,9 +62,9 @@ RUN pip install --upgrade pip && \
 # ==============================================================================
 # Stage 3: Runtime image
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS dotnet-runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS dotnet-runtime
 
-FROM python:3.11-slim-bookworm
+FROM python:3.11-slim-trixie
 
 LABEL maintainer="OpenRA-RL"
 LABEL description="OpenRA RL Environment - headless game engine with gRPC bridge + OpenEnv API"
@@ -77,7 +77,8 @@ RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     libgl1-mesa-dri \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     libegl-mesa0 \
     mesa-vulkan-drivers \
     libvulkan1 \
@@ -85,7 +86,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenal1 \
     libfreetype6 \
     liblua5.1-0 \
-    libicu72 \
+    libicu76 \
     curl procps \
     x11vnc novnc websockify \
     && rm -rf /var/lib/apt/lists/*
