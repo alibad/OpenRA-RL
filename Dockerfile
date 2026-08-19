@@ -1,7 +1,7 @@
 # ==============================================================================
 # Stage 1: Build OpenRA from source (C#/.NET 8.0)
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS openra-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS openra-build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     make \
@@ -62,7 +62,7 @@ RUN pip install --upgrade pip && \
 # ==============================================================================
 # Stage 3: Runtime image
 # ==============================================================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS dotnet-runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS dotnet-runtime
 
 FROM python:3.11-slim-bookworm
 
