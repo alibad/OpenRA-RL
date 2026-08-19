@@ -1870,14 +1870,14 @@ class OpenRAEnvironment(MCPEnvironment):
 
         @configurable_tool
         def patrol_units(unit_ids: str, target_x: int, target_y: int, queued: bool = False) -> dict:
-            """Order units to patrol between current position and target, engaging enemies on the way.
+            """Order units to advance to the target, engaging enemies encountered on the way.
             unit_ids: comma-separated IDs, \"all_combat\", \"all_idle\", \"type:e1\", or a group name."""
             env._refresh_obs()
             resolved = env._resolve_unit_ids(unit_ids, env._last_obs or {})
             if not resolved:
                 return {"error": "No matching units found"}
             commands = [
-                CommandModel(action=ActionType.PATROL, actor_id=uid, target_x=target_x, target_y=target_y, queued=queued)
+                CommandModel(action=ActionType.ATTACK_MOVE, actor_id=uid, target_x=target_x, target_y=target_y, queued=queued)
                 for uid in resolved
             ]
             result = env._execute_commands(commands)

@@ -135,6 +135,17 @@ class BridgeClient:
         request = rl_bridge_pb2.StateRequest(session_id=self.session_id)
         return self._stub.GetState(request, timeout=self.timeout_s)
 
+    def observe(self) -> rl_bridge_pb2.GameObservation:
+        """Read the latest fog-respecting observation without advancing or pausing.
+
+        Unary Observe RPC. Unlike fast_advance_unary() this does not step the
+        simulation, so it is safe to poll while the game runs.
+        """
+        if not self._connected or self._stub is None:
+            raise RuntimeError("Not connected. Call connect() first.")
+        request = rl_bridge_pb2.StateRequest(session_id=self.session_id)
+        return self._stub.Observe(request, timeout=self.timeout_s)
+
     def create_session(self, map_name: str, bots: str, seed: int = 0) -> str:
         """Create a new game session (multi-session mode).
 
@@ -359,7 +370,9 @@ def commands_to_proto(commands: list[dict]) -> rl_bridge_pb2.AgentAction:
         "power_down": rl_bridge_pb2.POWER_DOWN,
         "set_primary": rl_bridge_pb2.SET_PRIMARY,
         "surrender": rl_bridge_pb2.SURRENDER,
-        "patrol": rl_bridge_pb2.PATROL,
+        # The engine has no PATROL action; 22 is DISGUISE there. Map the legacy
+        # "patrol" string onto ATTACK_MOVE, which is what it actually did.
+        "patrol": rl_bridge_pb2.ATTACK_MOVE,
         "fast_advance": rl_bridge_pb2.FAST_ADVANCE,
     }
 
